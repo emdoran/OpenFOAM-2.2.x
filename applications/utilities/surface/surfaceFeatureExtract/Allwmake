@@ -9,6 +9,11 @@ then
     echo "Compiling surfaceFeatureExtract with CGAL curvature support"
     echo
 
+    if [ -n "$WM_USE_MACPORT" ]
+    then
+	THREAD_EXTENSION=-mt
+    fi
+
     wmake "ENABLE_CURVATURE=-DENABLE_CURVATURE \
            EXE_FROUNDING_MATH=-frounding-math \
            USE_F2C=-DCGAL_USE_F2C \
@@ -16,7 +21,7 @@ then
            LAPACK_LIB=-llapack \
            BLAS_LIB=-lblas \
            CGAL_LIB=-lCGAL \
-           CGAL_BOOST_LIB=-lboost_thread \
+           CGAL_BOOST_LIB=-lboost_thread$THREAD_EXTENSION \
            CGAL_MPFR_LIB=-lmpfr"
 else
     echo

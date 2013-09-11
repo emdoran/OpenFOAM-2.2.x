@@ -46,6 +46,14 @@ _foamAddLib()
     while [ $# -ge 1 ]
     do
         export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
+	if [ "$WM_ARCH_BASE" == "darwin" ]
+	then
+	    # do NOT add the lib of MacPort as this might break programs
+	    if [ "$1" != "/opt/local/lib" ]
+	    then
+		export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
+	    fi
+	fi
         shift
     done
 }
@@ -150,6 +158,108 @@ SunOS)
     export WM_CXXFLAGS='-mabi=64 -fPIC'
     export WM_LDFLAGS='-mabi=64 -G0'
     ;;
+
+Darwin)
+    export WM_ARCH_BASE=darwin
+
+    case `uname -p` in
+    powerpc)
+	export WM_ARCH=darwinPpc
+	;;
+    i386)
+	export WM_ARCH=darwinIntel
+        case $WM_ARCH_OPTION in
+        32)
+            export WM_COMPILER_LIB_ARCH=32
+            export WM_CC='gcc'
+            export WM_CXX='g++'
+            export WM_CFLAGS='-m32 -fPIC'
+            export WM_CXXFLAGS='-m32 -fPIC'
+            export WM_LDFLAGS='-m32'
+            ;;
+        64)
+            WM_ARCH=darwinIntel64
+            export WM_COMPILER_LIB_ARCH=64
+            export WM_CC='gcc'
+            export WM_CXX='g++'
+            export WM_CFLAGS='-m64 -fPIC'
+            export WM_CXXFLAGS='-m64 -fPIC'
+            export WM_LDFLAGS='-m64'
+            ;;
+        *)
+            echo Unknown WM_ARCH_OPTION $WM_ARCH_OPTION, should be 32 or 64
+            ;;
+        esac
+	;;
+    *)
+        echo "Unknown architecture "`uname -p` "for Darwin"
+    esac
+
+    which -s port >/dev/null
+    if [ $? -eq "0" -a -d '/opt/local/etc/macports' ]
+    then
+	if [ "$FOAM_VERBOSE" -a "$PS1" ]
+	then
+	    echo "Using Macports binaries"
+	fi
+
+	export WM_USE_MACPORT=1
+
+	if [ -e '/opt/local/bin/openmpicc' ]
+	then
+	    export WM_MPLIB=MACPORTOPENMPI
+	else
+	    if [ -z "$WM_CHOSEN_MAC_MPI" ]
+	    then
+		echo "WM_CHOSEN_MAC_MPI unset. Using OPENMPI"
+		export WM_MPLIB=OPENMPI
+	    else
+		export WM_MPLIB=$WM_CHOSEN_MAC_MPI
+	    fi
+        fi
+
+	case "$WM_COMPILER" in
+	    Gcc42)
+		export WM_MACPORT_VERSION=4.2
+		;;
+	    Gcc43)
+		export WM_MACPORT_VERSION=4.3
+		;;
+	    Gcc44)
+		export WM_MACPORT_VERSION=4.4
+		;;
+	    Gcc45)
+		export WM_MACPORT_VERSION=4.5
+		;;
+	    Gcc46)
+		export WM_MACPORT_VERSION=4.6
+		;;
+	    Gcc47)
+		export WM_MACPORT_VERSION=4.7
+		;;
+	    Gcc48)
+		export WM_MACPORT_VERSION=4.8
+		;;
+	    Gcc)
+		;;
+	    *)
+		echo "Unsupported MacPorts-Compiler $WM_COMPILER"
+		;;
+	esac
+	if [ "$WM_COMPILER" != "Gcc" ]
+	then
+	    export WM_CC="gcc-mp-$WM_MACPORT_VERSION"
+	    export WM_CXX="g++-mp-$WM_MACPORT_VERSION"
+	fi
+    else
+	echo "Seems you're not using MacPorts. This is currently not supported/tested. Find this line in 'etc/config/settings.sh', modify it accordingly and send patches to Bernhard"
+        export WM_COMPILER=
+        export WM_MPLIB=OPENMPI
+    fi
+
+    MACOSX_DEPLOYMENT_TARGET=`sw_vers -productVersion`
+    ;;
+
 
 *)    # an unsupported operating system
     /bin/cat <<USAGE 1>&2
@@ -376,6 +486,14 @@ then
     echo "    $boost_version at $BOOST_ARCH_PATH"
 fi
 
+if [ -n "$WM_USE_MACPORT" ]
+then
+    export BOOST_ARCH_PATH=/opt/local
+    export CGAL_ARCH_PATH=/opt/local
+    export MPFR_ARCH_PATH=/opt/local
+    export GMP_ARCH_PATH=/opt/local
+fi
+
 if [ -d "$CGAL_ARCH_PATH" ]
 then
     if [ -d "$BOOST_ARCH_PATH" ]
@@ -411,6 +529,20 @@ SYSTEMOPENMPI)
     _foamAddLib     $libDir
     unset libDir
     ;;
+
+MACPORTOPENMPI)
+	unset OPAL_PREFIX
+
+	export FOAM_MPI=openmpi-macport
+	libDir=`openmpicc --showme:link | sed -e 's/.*-L\([^ ]*\).*/\1/'`
+
+    # Bit of a hack: strip off 'lib' and hope this is the path to openmpi
+    # include files and libraries.
+	export MPI_ARCH_PATH="${libDir%/*}"
+
+	_foamAddLib     $libDir
+	unset libDir
+	;;
 
 OPENMPI)
     export FOAM_MPI=openmpi-1.6.3

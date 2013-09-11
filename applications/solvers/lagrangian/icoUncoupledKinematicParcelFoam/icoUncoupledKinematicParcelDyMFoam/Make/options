@@ -26,6 +26,7 @@ EXE_LIBS = \
     -lradiationModels \
     -lincompressibleRASModels \
     -lincompressibleLESModels \
+    -lincompressibleTurbulenceModel \
     -lincompressibleTransportModels \
     -lfiniteVolume \
     -lmeshTools \

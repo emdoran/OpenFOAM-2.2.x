@@ -9,9 +9,11 @@ EXE_LIBS = \
     -lincompressibleTransportModels \
     -lincompressibleRASModels \
     -lincompressibleLESModels \
+    -lincompressibleTurbulenceModel \
     -lfluidThermophysicalModels \
     -lspecie \
     -lcompressibleRASModels \
     -lcompressibleLESModels \
+    -lcompressibleTurbulenceModel \
     -lfiniteVolume \
     -lgenericPatchFields
