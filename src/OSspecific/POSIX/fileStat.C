@@ -31,7 +31,7 @@ License
 #include <unistd.h>
 #ifndef darwin
 #include <sys/sysmacros.h>
-#endif
+#endif // !darwin
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 

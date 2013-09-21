@@ -54,7 +54,7 @@ const char* const Foam::dynamicCode::topDirName = "dynamicCode";
 const char* const Foam::dynamicCode::dynamicLibExtension = ".so";
 #else
 const char* const Foam::dynamicCode::dynamicLibExtension = ".dylib";
-#endif
+#endif // !darwin
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 

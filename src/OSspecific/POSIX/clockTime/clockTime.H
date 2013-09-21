@@ -39,7 +39,7 @@ SourceFiles
 #include <sys/types.h>
 #ifdef darwin
 #include <sys/time.h>
-#endif
+#endif // darwin
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

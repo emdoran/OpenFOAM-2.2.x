@@ -55,8 +55,8 @@ Description
 #include <dlfcn.h>
 #ifndef darwin
 #include <link.h>
-#else
-#endif
+#else // darwin
+#endif // !darwin
 
 #include <netinet/in.h>
 
@@ -1178,12 +1178,11 @@ void* Foam::dlOpen(const fileName& lib, const bool check)
     void* handle = ::dlopen(lib.c_str(), RTLD_LAZY|RTLD_GLOBAL);
 
 #ifdef darwin
-    if(!handle && lib.ext()=="so") {
-        fileName lName=lib.lessExt()+".dylib";
-        handle = 
-            dlopen(lName.c_str(), RTLD_LAZY|RTLD_GLOBAL);
+    if (!handle && lib.ext()=="so") {
+      fileName lName=lib.lessExt()+".dylib";
+      handle = dlopen(lName.c_str(), RTLD_LAZY|RTLD_GLOBAL);
     }
-#endif
+#endif // darwin
 
     if (!handle && check)
     {
@@ -1279,14 +1278,14 @@ static int collectLibsCallback
 )
 {
 #ifdef darwin
-    WarningIn("collectLibsCallback")
-        << "Not yet implemented for Mac OS X"
-            << Foam::endl;
+  WarningIn("collectLibsCallBack")
+    << "Not yet implemented for Mac OS X"
+    << Foam::endl;
 #else
     Foam::DynamicList<Foam::fileName>* ptr =
         reinterpret_cast<Foam::DynamicList<Foam::fileName>*>(data);
     ptr->append(info->dlpi_name);
-#endif
+#endif // darwin
     return 0;
 }
 
@@ -1295,12 +1294,12 @@ Foam::fileNameList Foam::dlLoaded()
 {
     DynamicList<fileName> libs;
 #ifdef darwin
-    WarningIn("dlLoaded")
-        << "Not yet implemented for Mac OS X"
-            << endl;
+  WarningIn("dlLoaded")
+    << "Not yet implemented for Mac OS X"
+    << endl;
 #else
     dl_iterate_phdr(collectLibsCallback, &libs);
-#endif
+#endif // darwin
     if (POSIX::debug)
     {
         std::cout

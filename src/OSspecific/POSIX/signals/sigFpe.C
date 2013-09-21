@@ -302,24 +302,23 @@ void Foam::sigFpe::set(const bool verbose)
         );
 
 #       elif defined(__APPLE__)
-
+        
         struct sigaction newAction;
         newAction.sa_handler = sigHandler;
-        newAction.sa_flags = SA_NODEFER;
+        newAction.sa_flags   = SA_NODEFER;
         sigemptyset(&newAction.sa_mask);
-        if (sigaction(SIGFPE, &newAction, &oldAction_) < 0)
-        {
-            FatalErrorIn
+        if (sigaction(SIGFPE, &newAction, &oldAction_) < 0) {
+          FatalErrorIn
             (
-                "Foam::sigFpe::set()"
-            )   << "Cannot set SIGFPE trapping"
-                << abort(FatalError);
+             "Foam::sigFpe::set()"
+             ) << "Cannot set SIGFPE trapping"
+               << abort(FatalError);
         }
         _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_MASK_INVALID);
         _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_MASK_DIV_ZERO);
 
         _mm_setcsr( _MM_MASK_MASK &~
-        (_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO) );
+                    (_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO) );
 
         supported=true;
 
